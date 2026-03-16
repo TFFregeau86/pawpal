@@ -2,10 +2,55 @@
 
 ## 1. System Design
 
-**a. Initial design**
+### Core User Actions
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+1. Add a pet to their account so they can manage routines for each pet.
+
+2. Schedule care tasks such as feeding, walks, medications, or vet appointments.
+
+3. View a daily schedule of tasks to ensure pets receive proper care on time.
+
+### Main System Objects
+
+Owner
+Attributes:
+- name
+- email
+- pets (list)
+
+Methods:
+- add_pet()
+- view_pets()
+
+Pet
+Attributes:
+- name
+- species
+- age
+- tasks (list)
+
+Methods:
+- add_task()
+- remove_task()
+- list_tasks()
+
+Task
+Attributes:
+- title
+- task_type
+- time
+- priority
+- recurring
+
+Methods:
+- mark_complete()
+- reschedule()
+
+Scheduler
+Methods:
+- sort_tasks()
+- detect_conflicts()
+- generate_daily_schedule()
 
 **b. Design changes**
 

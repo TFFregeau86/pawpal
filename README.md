@@ -41,3 +41,43 @@ pip install -r requirements.txt
 5. Add tests to verify key behaviors.
 6. Connect your logic to the Streamlit UI in `app.py`.
 7. Refine UML so it matches what you actually built.
+
+classDiagram
+
+class Owner{
+    name
+    email
+    pets
+    add_pet()
+    view_pets()
+}
+
+class Pet{
+    name
+    species
+    age
+    tasks
+    add_task()
+    remove_task()
+    list_tasks()
+}
+
+class Task{
+    title
+    task_type
+    time
+    priority
+    recurring
+    mark_complete()
+    reschedule()
+}
+
+class Scheduler{
+    sort_tasks()
+    detect_conflicts()
+    generate_daily_schedule()
+}
+
+Owner --> Pet
+Pet --> Task
+Scheduler --> Task
