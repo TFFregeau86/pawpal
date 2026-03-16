@@ -1,65 +1,72 @@
+# pawpal_system.py
 from dataclasses import dataclass, field
 from typing import List
-
+from datetime import datetime, timedelta
 
 @dataclass
 class Task:
-    """Represents a single pet care task."""
     title: str
     task_type: str
-    time: str
+    time: str  # "HH:MM"
     priority: int = 1
     recurring: bool = False
     completed: bool = False
+    frequency: str = None  # e.g., "daily"
+    pet: 'Pet' = None
 
     def mark_complete(self):
-        """Marks the task as completed."""
+        """Mark task complete and create a new recurring task if needed."""
         self.completed = True
+        if self.recurring and self.frequency == "daily":
+            next_day_time = datetime.strptime(self.time, "%H:%M") + timedelta(days=1)
+            new_time_str = next_day_time.strftime("%H:%M")
+            new_task = Task(
+                title=self.title,
+                task_type=self.task_type,
+                time=new_time_str,
+                priority=self.priority,
+                recurring=True,
+                frequency=self.frequency,
+                pet=self.pet
+            )
+            if self.pet:
+                self.pet.add_task(new_task)
 
     def reschedule(self, new_time: str):
-        """Updates the scheduled time for the task."""
         self.time = new_time
 
 
 @dataclass
 class Pet:
-    """Represents a pet owned by the user."""
     name: str
     species: str
     age: int
     tasks: List[Task] = field(default_factory=list)
 
     def add_task(self, task: Task):
-        """Adds a task to the pet."""
+        task.pet = self
         self.tasks.append(task)
 
     def remove_task(self, task: Task):
-        """Removes a task from the pet."""
         self.tasks.remove(task)
 
     def list_tasks(self):
-        """Returns all tasks for this pet."""
         return self.tasks
 
 
 class Owner:
-    """Represents the pet owner and manages pets."""
-
     def __init__(self, name: str, email: str):
         self.name = name
         self.email = email
         self.pets: List[Pet] = []
 
     def add_pet(self, pet: Pet):
-        """Adds a pet to the owner's list."""
         self.pets.append(pet)
 
     def view_pets(self):
-        """Returns all pets belonging to the owner."""
         return self.pets
 
     def get_all_tasks(self):
-        """Returns tasks across all pets."""
         tasks = []
         for pet in self.pets:
             tasks.extend(pet.tasks)
@@ -67,27 +74,24 @@ class Owner:
 
 
 class Scheduler:
-    """Organizes and manages tasks across pets."""
-
     def sort_tasks(self, tasks: List[Task]):
-        """Sort tasks by time then priority."""
+        """Sort tasks by time (HH:MM) and descending priority."""
         return sorted(tasks, key=lambda t: (t.time, -t.priority))
 
     def detect_conflicts(self, tasks: List[Task]):
-        """Find tasks scheduled at the same time."""
+        """Return a list of tuples of conflicting Task objects."""
         conflicts = []
         seen_times = {}
-
         for task in tasks:
-            if task.time in seen_times:
-                conflicts.append((seen_times[task.time], task))
+            key = (task.time, task.pet.name if task.pet else "")
+            if key in seen_times:
+                conflicts.append((seen_times[key], task))
             else:
-                seen_times[task.time] = task
-
+                seen_times[key] = task
         return conflicts
 
     def generate_daily_schedule(self, owner: Owner):
-        """Generate a sorted list of all tasks for the owner."""
+        """Return sorted tasks for the owner."""
         tasks = owner.get_all_tasks()
         return self.sort_tasks(tasks)
 

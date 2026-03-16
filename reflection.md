@@ -10,56 +10,59 @@
 
 3. View a daily schedule of tasks to ensure pets receive proper care on time.
 
-### Main System Objects
+classDiagram
+    class Task {
+        +str title
+        +str task_type
+        +str time
+        +int priority
+        +bool recurring
+        +bool completed
+        +str frequency
+        +Pet pet
+        +mark_complete()
+        +reschedule(new_time)
+    }
 
-Owner
-Attributes:
-- name
-- email
-- pets (list)
+    class Pet {
+        +str name
+        +str species
+        +int age
+        +list tasks
+        +add_task(task)
+        +remove_task(task)
+        +list_tasks()
+    }
 
-Methods:
-- add_pet()
-- view_pets()
+    class Owner {
+        +str name
+        +str email
+        +list pets
+        +add_pet(pet)
+        +view_pets()
+        +get_all_tasks()
+    }
 
-Pet
-Attributes:
-- name
-- species
-- age
-- tasks (list)
+    class Scheduler {
+        +sort_tasks(tasks)
+        +detect_conflicts(tasks)
+        +generate_daily_schedule(owner)
+    }
 
-Methods:
-- add_task()
-- remove_task()
-- list_tasks()
-
-Task
-Attributes:
-- title
-- task_type
-- time
-- priority
-- recurring
-
-Methods:
-- mark_complete()
-- reschedule()
-
-Scheduler
-Methods:
-- sort_tasks()
-- detect_conflicts()
-- generate_daily_schedule()
+    Owner "1" --> "*" Pet : owns
+    Pet "1" --> "*" Task : has
+    Task "1" --> "1" Pet : linked to
+    Scheduler ..> Task : uses
+    Scheduler ..> Owner : uses
 
 **b. Design changes**
 
-During the design review, I adjusted how the Scheduler class interacts with the system. 
-Instead of storing tasks directly inside the Scheduler, the Scheduler operates on lists of tasks provided by Pets. 
-This keeps the scheduler independent from the data storage and makes the design more modular.
+During the design review, I made the following changes:
 
-I also confirmed the relationship structure where an Owner can have multiple Pets, and each Pet can contain multiple Tasks. 
-This hierarchy made the system easier to reason about and reflects real-world pet ownership.
+- The Scheduler was made stateless; it no longer stores tasks internally. Instead, it operates on task lists provided by pets. This improves modularity and testability.
+- Added recurring task logic in Task.mark_complete() instead of in Scheduler, so tasks self-manage recurrence.
+- Clarified relationships: an Owner can have multiple Pets, each Pet can have multiple Tasks, and Tasks know their parent Pet.
+- Introduced conflict detection in Scheduler to alert when tasks overlap in time for the same pet.
 
 ---
 
@@ -67,13 +70,18 @@ This hierarchy made the system easier to reason about and reflects real-world pe
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+- Scheduler constraints:
+  - **Time:** Tasks are sorted chronologically.
+  - **Priority:** Higher-priority tasks are scheduled before lower-priority tasks if at the same time.
+  - **Recurrence:** Recurring tasks generate new instances for future days automatically.
+  - **Conflict detection:** Identifies overlapping tasks for the same pet.
+
+- Reasoning: Time ensures tasks are in a logical order, while priority resolves overlaps. Recurrence reduces manual entry and conflict detection prevents scheduling errors.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+- Tradeoff: When two tasks have the exact same time, the scheduler chooses the task with higher priority first, even if a lower-priority task was added first.
+- Reasonable because pet care emergencies or important tasks (like vet visits) should take precedence over routine tasks.
 
 ---
 
@@ -81,13 +89,19 @@ This hierarchy made the system easier to reason about and reflects real-world pe
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+- Used AI to:
+  - Draft class definitions for Task, Pet, Owner, and Scheduler.
+  - Generate test cases for task completion, sorting, recurring tasks, and conflict detection.
+  - Suggest Streamlit UI improvements for displaying schedules and marking tasks complete.
+- Helpful prompts included:
+  - "Write pytest unit tests for a pet scheduler with recurring tasks and conflict detection."
+  - "Generate a Mermaid UML diagram for these classes."
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+- AI suggested storing recurring logic in Scheduler, but I moved it to Task.mark_complete() to reduce coupling.
+- Verified suggestions by checking whether tasks were correctly marked complete and whether new recurring tasks were added.
+- Used manual tests in Streamlit and pytest to ensure behavior matched expectations.
 
 ---
 
@@ -95,13 +109,19 @@ This hierarchy made the system easier to reason about and reflects real-world pe
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+- Tested task completion to ensure tasks could be marked complete.
+- Tested task sorting by time and priority.
+- Verified that completing recurring tasks creates new instances for the next day.
+- Checked conflict detection for overlapping tasks.
+- These tests are important because they validate that the core scheduling logic works correctly and prevents missed or duplicated tasks.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+- Confidence level: ★★★★☆ (4/5)  
+- Edge cases to test further:
+  - Multiple pets with overlapping tasks at the same time.
+  - Tasks spanning midnight or multiple days.
+  - Tasks with durations longer than the interval between scheduled tasks.
 
 ---
 
@@ -109,12 +129,16 @@ This hierarchy made the system easier to reason about and reflects real-world pe
 
 **a. What went well**
 
-- What part of this project are you most satisfied with?
+- Successfully implemented a modular scheduler that handles time, priority, recurrence, and conflicts.
+- Streamlit UI now displays tasks clearly, allows marking completion, and reflects real-time updates.
+- Automated tests gave confidence that the system behaves correctly.
 
 **b. What you would improve**
 
-- If you had another iteration, what would you improve or redesign?
+- Make the UI fully dynamic for multiple pets and allow editing tasks.
+- Add notifications for upcoming tasks.
+- Enhance scheduler to handle task duration, not just start times.
 
 **c. Key takeaway**
 
-- What is one important thing you learned about designing systems or working with AI on this project?
+- Clear class design and modularity are essential when working with AI suggestions. AI can generate code quickly, but human oversight ensures maintainable and correct design.
