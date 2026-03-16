@@ -54,8 +54,12 @@ Methods:
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+During the design review, I adjusted how the Scheduler class interacts with the system. 
+Instead of storing tasks directly inside the Scheduler, the Scheduler operates on lists of tasks provided by Pets. 
+This keeps the scheduler independent from the data storage and makes the design more modular.
+
+I also confirmed the relationship structure where an Owner can have multiple Pets, and each Pet can contain multiple Tasks. 
+This hierarchy made the system easier to reason about and reflects real-world pet ownership.
 
 ---
 
